@@ -21,20 +21,4 @@ if __name__ == "__main__":
             print("Client connected")
             for i in range(1, 1000000):
                 sock.send(testdata)
-            # while True:
-            #     # Input
-            #     data = input("Type the message to send:")
-            #     if data == "exit":
-            #         print("Close by client")
-            #         break
-            #     # Send
-            #     data_bytes = data.encode()
-            #     sock.sendall(data_bytes)
-            #     # Receive
-            #     data_bytes = sock.recv(1024)
-            #     data = data_bytes.decode()
-            #     print("Received:", repr(data))
-            #     if not data:
-            #         print("Closed by server")
-            #         break
             print("Client disconnected")

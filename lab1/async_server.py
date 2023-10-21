@@ -1,43 +1,36 @@
 import asyncio
+from utils import speed_test, SocketWithTests
 
 
-async def handle_connection(reader, writer):
-    addr = writer.get_extra_info("peername")
-    print("Connected by", addr)
-    while True:
-        # Receive
-        try:
-            data = await reader.read(1024)  # New
-        except ConnectionError:
-            print(f"Client suddenly closed while receiving from {addr}")
+class AsyncSocket(SocketWithTests):
+    async def create_socket(self):
+        server = await asyncio.start_server(self.read, self.HOST, self.PORT)
+        print("Server started")
+        return server
+
+    @speed_test
+    async def read(self, reader, writer):
+        addr = writer.get_extra_info("peername")
+        count = 0
+        print("Connected by", addr)
+        while True:
+            data = await reader.read(self.BUFFER)
+            print(data)
+            if data:
+                count += len(data)
+                del data
+                continue
             break
-        print(f"Received {data} from: {addr}")
-        if not data:
-            break
-        # Process
-        if data == b"close":
-            break
-        data = data.upper()
-        # Send
-        print(f"Send: {data} to: {addr}")
-        try:
-            writer.write(data)  # New
-            await writer.drain()
-        except ConnectionError:
-            print(f"Client suddenly closed, cannot send")
-            break
-    writer.close()
-    print("Disconnected by", addr)
+        return count
 
 
-async def main(host, port):
-    server = await asyncio.start_server(handle_connection, host, port)
+async def start_server():
+    async_server = AsyncSocket()
+    server = await async_server.create_socket()
     print(f"Start server...")
     async with server:
         await server.serve_forever()
 
-HOST = "localhost"
-PORT = 50007
 
 if __name__ == "__main__":
-    asyncio.run(main(HOST, PORT))
+    asyncio.run(start_server())

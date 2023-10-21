@@ -1,35 +1,33 @@
 import socket
-import datetime
-
-HOST = "localhost"
-PORT = 50007
-BUFFER = 4096
+from utils import speed_test, SocketWithTests
 
 
-if __name__ == "__main__":
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serv_sock:
-        serv_sock.bind((HOST, PORT))
+class BlockingSocket(SocketWithTests):
+    def create_socket(self):
+        serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        serv_sock.bind((self.HOST, self.PORT))
         serv_sock.listen(1)
         print("Server started")
-        print("Waiting for connection...")
-        sock, addr = serv_sock.accept()
-        starttime = datetime.datetime.now()
+        return serv_sock
+
+    @speed_test
+    def read(self, sock):
+        count = 0
         with sock:
-            print("Connected by", addr)
-            count = 0
             while True:
-                data = sock.recv(BUFFER)
+                data = sock.recv(self.BUFFER)
                 if data:
                     count += len(data)
                     del data
                     continue
                 break
-        endtime = datetime.datetime.now()
-        print(endtime)
-        print('%s:%s disconnected\n\r' % addr)
+        return count
 
-        print('bytes transferred: %d' % count)
-        delta = endtime - starttime
-        delta = delta.seconds + delta.microseconds / 1000000.0
-        print('time used (seconds): %f' % delta)
-        print('averaged speed (MB/s): %f\n\r' % (count / 1024 / 1024 / delta))
+
+if __name__ == "__main__":
+    blocking_server = BlockingSocket()
+    serv_sock = blocking_server.create_socket()
+    with serv_sock:
+        print("Waiting for connection...")
+        sock, addr = serv_sock.accept()
+        blocking_server.read(sock)
