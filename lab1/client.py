@@ -19,6 +19,6 @@ if __name__ == "__main__":
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.connect((HOST, PORT))
             print("Client connected")
-            for i in range(1, 1000000):
+            for i in range(1, 10000):
                 sock.send(testdata)
             print("Client disconnected")
